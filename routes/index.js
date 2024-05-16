@@ -1,49 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>글 작성하기</title>
-    <style>
-        form {
-            margin: 20px;
-        }
-        input, textarea {
-            display: block;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h1>글 작성하기</h1>
-    <form id="postForm">
-        <label for="title">제목:</label>
-        <input type="text" id="title" name="title">
-        <label for="content">내용:</label>
-        <textarea id="content" name="content"></textarea>
-        <button type="submit">글 작성</button>
-    </form>
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 
-    <script>
-        document.getElementById('postForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+const app = express();
+const port = process.env.PORT || 3000;
 
-            const formData = new FormData(this);
+// CORS 미들웨어 추가
+app.use(cors());
 
-            fetch('https://port-0-nan-bot-1ru12mlw78vhg8.sel5.cloudtype.app/post', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(Object.fromEntries(formData))
-            })
-            .then(response => response.text())
-            .then(message => {
-                alert(message);
-                // 페이지 새로고침 등의 작업 수행
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    </script>
-</body>
-</html>
+// POST 요청을 처리하기 위해 bodyParser 사용
+app.use(bodyParser.json());
+
+// POST 요청을 처리하는 라우트 핸들러
+app.post('/post', (req, res) => {
+    const { title, content } = req.body;
+
+    // 데이터가 비어있는지 확인
+    if (!title || !content) {
+        // 요청이 유효하지 않을 때 클라이언트에 에러 응답을 보냄
+        return res.status(400).send('제목과 내용을 모두 입력해주세요.');
+    }
+
+    // 여기서는 간단하게 제목과 내용을 로그에 출력
+    console.log('제목:', title);
+    console.log('내용:', content);
+
+    // 클라이언트에 성공 응답을 보냄
+    res.send('글이 성공적으로 전송되었습니다!');
+});
+
+// 에러 핸들링 미들웨어 추가
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('서버 오류 발생!');
+});
+
+// 서버 시작
+app.listen(port, () => {
+    console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
+});
